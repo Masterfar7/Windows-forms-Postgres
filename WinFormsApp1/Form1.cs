@@ -1,136 +1,91 @@
-using System.Data;
+using System;
 using System.Windows.Forms;
-using Npgsql;
+
 namespace WinFormsApp1
 {
     public partial class Form1 : Form
     {
-        string sql = "Host=localhost;Username=postgres;Password=1;Database=company";
-        ConnectionDataBase connBD = new ConnectionDataBase();
+        private readonly DataBase _dataBase = new DataBase();
+
         public Form1()
         {
             InitializeComponent();
-
-            SqlConnectionReader();
+            LoadDataAsync();
         }
-        private void SqlConnectionReader()
+
+        private async void LoadDataAsync()
         {
-            NpgsqlConnection sqlConnection = new NpgsqlConnection(sql);
-            sqlConnection.Open();
-            NpgsqlCommand command = new NpgsqlCommand();
-            command.Connection = sqlConnection;
-            command.CommandType = CommandType.Text;
-            command.CommandText = "SELECT * FROM employees";
-            NpgsqlDataReader dataReader = command.ExecuteReader();
-            if (dataReader.HasRows)
+            dataGridView1.DataSource = await _dataBase.GetAllAsync();
+        }
+
+        private async void button1_Click(object sender, EventArgs e)
+        {
+            if (string.IsNullOrWhiteSpace(textBox1.Text) ||
+                string.IsNullOrWhiteSpace(textBox2.Text) ||
+                !decimal.TryParse(textBox3.Text, out decimal salary))
             {
-                DataTable data = new DataTable();
-                data.Load(dataReader);
-                dataGridView1.DataSource = data;
+                MessageBox.Show("Пожалуйста, заполните все поля корректно.",
+                    "Внимание", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
             }
-            command.Dispose();
-            sqlConnection.Close();
+
+            await _dataBase.AddAsync(textBox1.Text, textBox2.Text, salary);
+            await RefreshDataGridViewAsync();
+            textBox1.Clear();
+            textBox2.Clear();
+            textBox3.Clear();
         }
 
-        private void label1_Click(object sender, EventArgs e)
+        private async void button2_Click(object sender, EventArgs e)
         {
-
-        }
-
-        private void label3_Click(object sender, EventArgs e)
-        {
-
-        }
-
-        private void button1_Click(object sender, EventArgs e)
-        {
-            NpgsqlConnection sqlConnection = new NpgsqlConnection(sql);
-            sqlConnection.Open();
-            NpgsqlCommand command = new NpgsqlCommand();
-            command.Connection = sqlConnection;
-            command.CommandType = CommandType.Text;
-            command.CommandText = string.Format("INSERT INTO employees(id,name,position,salary) VALUES ('6','{0}', '{1}', '{2}')", textBox1.Text, textBox2.Text, textBox3.Text);
-            NpgsqlDataReader dataReader = command.ExecuteReader();
-            if (dataReader.HasRows)
+            if (!int.TryParse(textBox7.Text, out int idToUpdate) ||
+                !decimal.TryParse(textBox6.Text, out decimal newSalary) ||
+                string.IsNullOrWhiteSpace(textBox4.Text) ||
+                string.IsNullOrWhiteSpace(textBox5.Text))
             {
-                DataTable data = new DataTable();
-                data.Load(dataReader);
-                dataGridView1.DataSource = data;
+                MessageBox.Show("Заполните все поля корректно.",
+                    "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
             }
-            command.Dispose();
-            sqlConnection.Close();
-            SqlConnectionReader();
+
+            await _dataBase.UpdateAsync(idToUpdate, textBox4.Text, textBox5.Text, newSalary);
+            await RefreshDataGridViewAsync();
         }
-        private void button2_Click(object sender, EventArgs e)
+
+        private async void button3_Click(object sender, EventArgs e)
         {
-            NpgsqlConnection sqlConnection = new NpgsqlConnection(sql);
-            sqlConnection.Open();
-            NpgsqlCommand command = new NpgsqlCommand();
-            command.Connection = sqlConnection;
-            command.CommandType = CommandType.Text;
-            command.CommandText = string.Format("UPDATE employees SET name = '{0}',position = '{1}',salary = '{2}' WHERE id = '{3}'", textBox4.Text, textBox5.Text, textBox6.Text, Convert.ToInt32(textBox7.Text));
-            NpgsqlDataReader dataReader = command.ExecuteReader();
-            if (dataReader.HasRows)
+            if (!int.TryParse(textBox8.Text, out int idToDelete))
             {
-                DataTable data = new DataTable();
-                data.Load(dataReader);
-                dataGridView1.DataSource = data;
+                MessageBox.Show("Введите корректный ID для удаления.",
+                    "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
             }
-            command.Dispose();
-            sqlConnection.Close();
-            SqlConnectionReader();
+
+            await _dataBase.DeleteAsync(idToDelete);
+            await RefreshDataGridViewAsync();
+            textBox8.Clear();
         }
 
-        private void label7_Click(object sender, EventArgs e)
+        private async void button4_Click(object sender, EventArgs e)
         {
-
-        }
-
-        private void label8_Click(object sender, EventArgs e)
-        {
-
-        }
-        private void button3_Click(object sender, EventArgs e)
-        {
-            NpgsqlConnection sqlConnection = new NpgsqlConnection(sql);
-            sqlConnection.Open();
-            NpgsqlCommand command = new NpgsqlCommand();
-            command.Connection = sqlConnection;
-            command.CommandType = CommandType.Text;
-            command.CommandText = string.Format("DELETE FROM employees WHERE id = '{0}'",Convert.ToInt32(textBox8.Text));
-            NpgsqlDataReader dataReader = command.ExecuteReader();
-            if (dataReader.HasRows)
+            if (!int.TryParse(textBox9.Text, out int idToFind))
             {
-                DataTable data = new DataTable();
-                data.Load(dataReader);
-                dataGridView1.DataSource = data;
+                MessageBox.Show("Введите корректный ID для поиска.",
+                    "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
             }
-            command.Dispose();
-            sqlConnection.Close();
-            SqlConnectionReader();
+
+            dataGridView1.DataSource = await _dataBase.FindByIdAsync(idToFind);
         }
 
-        private void button4_Click(object sender, EventArgs e)
+        private async void button5_Click(object sender, EventArgs e)
         {
-            NpgsqlConnection sqlConnection = new NpgsqlConnection(sql);
-            sqlConnection.Open();
-            NpgsqlCommand command = new NpgsqlCommand();
-            command.Connection = sqlConnection;
-            command.CommandType = CommandType.Text;
-            command.CommandText = String.Format("SELECT * FROM employees WHERE id = '{0}'",Convert.ToInt32(textBox9.Text));
-            NpgsqlDataReader dataReader = command.ExecuteReader();
-            if (dataReader.HasRows)
-            {
-                DataTable data = new DataTable();
-                data.Load(dataReader);
-                dataGridView1.DataSource = data;
-            }
-            command.Dispose();
-            sqlConnection.Close();
+            await RefreshDataGridViewAsync();
         }
-        private void button5_Click(object sender, EventArgs e)
+
+        private async Task RefreshDataGridViewAsync()
         {
-            SqlConnectionReader();
+            dataGridView1.DataSource = await _dataBase.GetAllAsync();
         }
     }
 }

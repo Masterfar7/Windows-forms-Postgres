@@ -78,7 +78,6 @@
             label1.Size = new Size(37, 15);
             label1.TabIndex = 2;
             label1.Text = "name";
-            label1.Click += label1_Click;
             // 
             // textBox2
             // 
@@ -111,7 +110,6 @@
             label3.Size = new Size(37, 15);
             label3.TabIndex = 6;
             label3.Text = "salary";
-            label3.Click += label3_Click;
             // 
             // button1
             // 
@@ -196,7 +194,6 @@
             label7.Size = new Size(17, 15);
             label7.TabIndex = 17;
             label7.Text = "id";
-            label7.Click += label7_Click;
             // 
             // button3
             // 
@@ -216,7 +213,6 @@
             label8.Size = new Size(17, 15);
             label8.TabIndex = 19;
             label8.Text = "id";
-            label8.Click += label8_Click;
             // 
             // textBox8
             // 
